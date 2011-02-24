@@ -1,29 +1,34 @@
-h1. A java client for akismet.com
+h1. A Tapestry 5 Module for Akismet API compatible services
 
-This is a client for the "akismet":http://akismet.com/ spam checker that supports all "api methods":http://akismet.com/development/api.
+This is Tapestry 5 IOC Module for interacting with services compatible to the Akismet API (http://akismet.com/development/api/). This includes Akismet itself (http://akismet.com/) as well as the free and open source alternative TypePad AntiSpam (http://antispam.typepad.com/).
 
-The project is a ready to use configured maven/eclipse project, dependencies are "HttpComponents 4.x":http://hc.apache.org and slf4j.
+This project is strongly based on the work by Michael J. Simons, java-akismet, but modified in order to be simpler in the context of a Tapestry 5 module and to take advantage of this as well.
 
 h2. Deployment
 
-Run maven with the following argument added:
+Download the source code and do a Maven install (mvn install). Add the dependency on your project's pom.xml like this:
 
 <pre>
-mvn -DargLine="-DakismetApiKey=YOUR_API_KEY -DakismetConsumer=YOUR_SITE" install
+	<dependency>
+		<groupId>com.raulmt</groupId>
+		<artifactId>quilt-akismet</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</dependency>
 </pre>
+
+Finally, configure your API Key (you can obtain one for free if you use TypePad AntiSpam here: http://antispam.typepad.com/info/get-api-key.html) and API Consumer (the URL of your site) by contributing the following symbols in your app module:
+
+<pre>
+	public void contributeApplicationDefaults(MappedConfiguration<String, String> configuration) {
+		configuration.add(AkismetSymbols.API_CONSUMER, "[YOUR SITE URL]");
+		configuration.add(AkismetSymbols.API_KEY, "[YOUR API KEY]");
+	}
+</pre>
+
+There are others symbols to use another service (the default is TypePad AntiSpam) or to specify the exact API endpoint you want to use.
+
+And done!
 
 h2. Usage
 
-h3. In a Spring 3.x application
-
-The httpClient reference must be an instance of org.apache.http.client.HttpClient.
-
-<pre><code>
-<bean name="akismet" class="ac.simons.akismet.Akismet">
-	<constructor-arg name="httpClient" ref="httpClient" />
-	<!-- The api key from akismet.com --> 
-	<property name="apiKey" value="YOUR_API_KEY" />
-	<!-- The name of your blog or site -->
-	<property name="apiConsumer" value="YOUR_SITE" />
-</bean>
-</code></pre>
+Just inject the Akismet service and check your comments! The service's methods receive a AkismetComment object, so you have to create one from your own comment representation.
