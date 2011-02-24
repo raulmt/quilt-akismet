@@ -73,10 +73,6 @@ public interface Akismet<T> {
 	 */
 	public boolean commentCheck(final T comment) throws AkismetException;
 	
-	//TODO: hacer una typecoercion de un X tipo de comentario a un AkismetComment.
-	// quizá es mejor tratar que, de alguna forma, se pueda contribuir una transformación y que la interfaz mágicamente (quizá con generics)
-	// pueda funcionar con esos tipo de comentarios, transformándolos.
-
 	/**
 	 * This call is for submitting comments that weren't marked as spam but
 	 * should have been.
