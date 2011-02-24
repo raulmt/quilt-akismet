@@ -4,9 +4,15 @@ This is Tapestry 5 IOC Module for interacting with services compatible to the Ak
 
 This project is strongly based on the work by Michael J. Simons, java-akismet, but modified in order to be simpler in the context of a Tapestry 5 module and to take advantage of this as well.
 
-h2. Deployment
+h2. Deployment and configuration
 
-Download the source code and do a Maven install (mvn install). Add the dependency on your project's pom.xml like this:
+Download the source code and do a Maven install with the following parameters:
+
+<pre>
+mvn install -DargLine="-DakismetApiKey=[YOUR API KEY] -DakismetConsumer=[YOUR SITE URL]"
+</pre>
+
+Add the dependency on your project's pom.xml like this:
 
 <pre>
 	<dependency>
@@ -31,4 +37,42 @@ And done!
 
 h2. Usage
 
-Just inject the Akismet service and check your comments! The service's methods receive a AkismetComment object, so you have to create one from your own comment representation.
+Just inject the Akismet service and check your comments! The service's methods natively receive a AkismetComment object, but if you provide a coercion to this class from your own Comment class, you can pass them directly to the service.
+
+h3. Contributing a coercion
+
+<pre>
+public static void contributeTypeCoercer(final org.apache.tapestry5.ioc.Configuration<CoercionTuple> configuration) {
+		
+		configuration.add(new CoercionTuple<Comment, AkismetComment>(Comment.class, AkismetComment.class, new Coercion<Comment, AkismetComment>() {
+
+					@Override
+					public AkismetComment coerce(Comment input) {
+						AkismetComment output = new AkismetComment();
+						// set other fields of AkismetComment from your Comment class
+						output.setCommentContent(input.getText());
+						// ...
+						return output;
+					}
+				}));
+	}
+</pre>
+
+h3. Using the service in a Page class
+
+<pre>
+@Inject
+private Akismet<Comment> akismet;
+
+@Property
+private Comment comment;
+
+// ...
+
+void onSuccess() {
+	if (akismet.commentCheck()) {
+		// this comment is SPAM!!
+	}
+	// ...
+}
+</pre>

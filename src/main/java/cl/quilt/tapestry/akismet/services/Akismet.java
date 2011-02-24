@@ -37,28 +37,27 @@
  */
 package cl.quilt.tapestry.akismet.services;
 
-import ac.simons.akismet.AkismetComment;
 import ac.simons.akismet.AkismetException;
 
 /**
  * @author raul
  * 
  */
-public interface Akismet {
+public interface Akismet<T> {
 
 	/**
 	 * Tells if the service will verify the comments
 	 * 
 	 * @return true if the service is active, false otherwise
 	 */
-	public abstract boolean isEnabled();
+	public boolean isEnabled();
 
 	/**
 	 * Enable or disable the service
 	 * 
 	 * @param enabled
 	 */
-	public abstract void setEnabled(boolean enabled);
+	public void setEnabled(boolean enabled);
 
 	/**
 	 * This is basically the core of everything. This call takes a number of
@@ -72,7 +71,7 @@ public interface Akismet {
 	 * @return True, if the comment is spam, false otherwise
 	 * @throws AkismetException
 	 */
-	public abstract boolean commentCheck(final AkismetComment comment) throws AkismetException;
+	public boolean commentCheck(final T comment) throws AkismetException;
 	
 	//TODO: hacer una typecoercion de un X tipo de comentario a un AkismetComment.
 	// quizá es mejor tratar que, de alguna forma, se pueda contribuir una transformación y que la interfaz mágicamente (quizá con generics)
@@ -86,7 +85,7 @@ public interface Akismet {
 	 * @return True if the spam was successfully submitted.
 	 * @throws AkismetException
 	 */
-	public abstract boolean submitSpam(final AkismetComment comment) throws AkismetException;
+	public boolean submitSpam(final T comment) throws AkismetException;
 
 	/**
 	 * This call is intended for the marking of false positives, things that
@@ -96,6 +95,6 @@ public interface Akismet {
 	 * @return True if the ham was successfully submitted.
 	 * @throws AkismetException
 	 */
-	public abstract boolean submitHam(final AkismetComment comment) throws AkismetException;
+	public boolean submitHam(final T comment) throws AkismetException;
 
 }

@@ -49,6 +49,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.tapestry5.ioc.annotations.Symbol;
+import org.apache.tapestry5.ioc.services.TypeCoercer;
 import org.slf4j.Logger;
 
 import com.raulmt.javaakismet.utils.StringUtils;
@@ -65,7 +66,7 @@ import cl.quilt.tapestry.akismet.services.KnownAkismetCompatibleServices;
  * @author Michael J. Simons
  * @author Raúl Montes
  */
-public class AkismetImpl implements Akismet {
+public class AkismetImpl<T> implements Akismet<T> {
 
 	/**
 	 * Version of Akismet API this library supports
@@ -93,6 +94,11 @@ public class AkismetImpl implements Akismet {
 	 * {@link HttpClient} to make requests to the service
 	 */
 	private final HttpClient httpClient;
+	
+	/**
+	 * {@link TypeCoercer} to coerce comments to {@link AkismetComment}s
+	 */
+	private final TypeCoercer coercer;
 
 	/**
 	 * API Endpoint
@@ -117,12 +123,13 @@ public class AkismetImpl implements Akismet {
 	 */
 	private boolean enabled = true;
 
-	public AkismetImpl(HttpClient httpClient, Logger logger, @Symbol(AkismetSymbols.API_KEY) final String apiKey,
+	public AkismetImpl(final HttpClient httpClient, final TypeCoercer coercer, Logger logger, @Symbol(AkismetSymbols.API_KEY) final String apiKey,
 			@Symbol(AkismetSymbols.API_CONSUMER) final String apiConsumer,
 			@Symbol(AkismetSymbols.AKISMET_COMPATIBLE_SERVICE) final String conpatibleService,
 			@Symbol(AkismetSymbols.API_ENDPOINT) final String apiEndpoint) {
 
 		this.httpClient = httpClient;
+		this.coercer = coercer;
 		this.logger = logger;
 
 
@@ -194,7 +201,7 @@ public class AkismetImpl implements Akismet {
 	 * ac.simons.akismet.Akismet#commentCheck(ac.simons.akismet.AkismetComment)
 	 */
 	@Override
-	public boolean commentCheck(final AkismetComment comment) throws AkismetException {
+	public boolean commentCheck(final T comment) throws AkismetException {
 		// When in doubt, assume that the comment is ham
 		boolean rv = false;
 		if (enabled) {
@@ -220,7 +227,7 @@ public class AkismetImpl implements Akismet {
 	 * ac.simons.akismet.Akismet#submitSpam(ac.simons.akismet.AkismetComment)
 	 */
 	@Override
-	public boolean submitSpam(final AkismetComment comment) throws AkismetException {
+	public boolean submitSpam(final T comment) throws AkismetException {
 		boolean rv = false;
 		try {
 			final HttpResponse response = this.callAkismet("submit-spam", comment);
@@ -244,7 +251,7 @@ public class AkismetImpl implements Akismet {
 	 * ac.simons.akismet.Akismet#submitHam(ac.simons.akismet.AkismetComment)
 	 */
 	@Override
-	public boolean submitHam(final AkismetComment comment) throws AkismetException {
+	public boolean submitHam(final T comment) throws AkismetException {
 		boolean rv = false;
 		try {
 			final HttpResponse response = this.callAkismet("submit-ham", comment);
@@ -312,9 +319,10 @@ public class AkismetImpl implements Akismet {
 		return request;
 	}
 
-	private HttpResponse callAkismet(final String function, final AkismetComment comment) throws Exception {
+	private HttpResponse callAkismet(final String function, final T comment) throws Exception {
+		AkismetComment akismetComment = coercer.coerce(comment, AkismetComment.class);
 		final HttpPost request = newHttpPostRequest(String.format("http://%s.%s/%s/%s", apiKey, apiEndpoint, API_VERSION, function));
-		request.setEntity(comment.toEntity(apiConsumer));
+		request.setEntity(akismetComment.toEntity(apiConsumer));
 		return httpClient.execute(request);
 	}
 
